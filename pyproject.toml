@@ -1,0 +1,97 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pulq"
+version = "0.1.0"
+description = "Fair task scheduling with async pull: WDRR-based priority queue for Python"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [{ name = "Vadim Schultz" }]
+keywords = ["async", "queue", "task", "scheduling", "wdrr", "priority", "worker"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: AsyncIO",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Distributed Computing",
+]
+dependencies = [
+    "pydantic>=2.0",
+    "typing-extensions>=4.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=4.1",
+    "ruff>=0.3",
+    "mypy>=1.9",
+    "hypothesis>=6.0",
+]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+    "myst-parser>=2.0",
+    "sphinx-autodoc-typehints>=2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/vadim-schultz/pulq"
+Documentation = "https://pulq.readthedocs.io"
+Repository = "https://github.com/vadim-schultz/pulq"
+Issues = "https://github.com/vadim-schultz/pulq/issues"
+Changelog = "https://github.com/vadim-schultz/pulq/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests", "examples", "benchmarks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "ANN", "ASYNC", "B", "C4", "DTZ", "T10", "EM", "ISC", "PIE", "PT", "RET", "SIM", "TCH", "ARG", "PTH", "PL", "TRY", "RUF"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/pulq/**/*.py" = ["TC001", "TC003"]
+"src/pulq/core/pull_queue.py" = ["PLR0913"]
+"src/pulq/core/worker.py" = ["PLR0913"]
+"tests/**/*.py" = ["S101", "PLR2004", "ANN001"]
+"examples/**/*.py" = ["T201"]
+"benchmarks/**/*.py" = ["T201"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+packages = ["pulq"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "--cov=pulq --cov-report=term-missing --cov-report=xml"
+
+[tool.coverage.run]
+source_pkgs = ["pulq"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "@overload",
+]
