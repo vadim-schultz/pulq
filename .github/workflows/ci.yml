@@ -43,8 +43,33 @@ jobs:
         uses: codecov/codecov-action@v5
         if: matrix.python-version == '3.12'
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
           fail_ci_if_error: false
+
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Build package
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+          python -m build
+
+      - name: Check package
+        run: twine check dist/*
+
+      - name: Test install from wheel
+        run: |
+          pip install dist/*.whl
+          python -c "import pulq; print(pulq.__version__)"
 
   docs:
     runs-on: ubuntu-latest

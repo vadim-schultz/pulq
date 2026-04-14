@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "pulq"
 version = "0.1.0"
 description = "Fair task scheduling with async pull: WDRR-based priority queue for Python"
-readme = "README.md"
+readme = { file = "README.md", content-type = "text/markdown" }
 license = "MIT"
 requires-python = ">=3.11"
 authors = [{ name = "Vadim Schultz" }]
@@ -51,6 +51,9 @@ Changelog = "https://github.com/vadim-schultz/pulq/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+pulq = ["py.typed"]
 
 [tool.ruff]
 line-length = 100
