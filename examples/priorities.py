@@ -1,4 +1,10 @@
-"""Schedule many tasks and observe WDRR priority service."""
+"""Schedule many tasks and observe WDRR priority service.
+
+Uses :class:`~pulq.core.pull_queue.PullQueue` with default scheduler settings
+(same as passing ``PullQueueConfig()`` explicitly). Customize via
+``PullQueueConfig(scheduler=DeficitSchedulerConfig(...))`` when you need
+different buckets or weights.
+"""
 
 from __future__ import annotations
 
@@ -9,11 +15,7 @@ from pulq import InMemoryTaskRepository, PullQueue, Task
 
 async def main() -> None:
     repo = InMemoryTaskRepository()
-    queue = PullQueue(
-        repo,
-        priority_order=("high", "medium", "low"),
-        weights={"high": 3, "medium": 2, "low": 1},
-    )
+    queue = PullQueue(repo)
     for p in ("low", "medium", "high"):
         for i in range(5):
             await queue.schedule(Task(priority=p, payload={"p": p, "i": i}))

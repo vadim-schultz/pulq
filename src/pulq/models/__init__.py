@@ -7,6 +7,7 @@ from pulq.models.scheduler_config import DeficitSchedulerConfig
 from pulq.models.task import Task
 from pulq.models.unions import ClaimResult, WorkResponse
 from pulq.models.work import ManagementCommand, NoPendingTask, NoWork
+from pulq.models.worker_config import WorkerConfig, WorkerHooks
 
 __all__ = [
     "ClaimResult",
@@ -19,4 +20,6 @@ __all__ = [
     "Task",
     "TaskStatus",
     "WorkResponse",
+    "WorkerConfig",
+    "WorkerHooks",
 ]

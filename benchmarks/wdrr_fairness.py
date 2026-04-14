@@ -13,11 +13,7 @@ async def run(n_tasks_per_priority: int = 100, n_pulls: int = 100) -> None:
     With weights {high: 3, medium: 2, low: 1}, expect roughly 50% high, 33% medium, 17% low.
     """
     repo = InMemoryTaskRepository()
-    q = PullQueue(
-        repo,
-        priority_order=("high", "medium", "low"),
-        weights={"high": 3, "medium": 2, "low": 1},
-    )
+    q = PullQueue(repo)
     for _ in range(n_tasks_per_priority):
         await q.schedule(Task(priority="high", payload={}))
         await q.schedule(Task(priority="medium", payload={}))

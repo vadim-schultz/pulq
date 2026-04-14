@@ -8,11 +8,14 @@ import pytest
 
 from pulq import (
     CommandType,
+    DeficitSchedulerConfig,
     InMemoryTaskRepository,
     LocalTransport,
     PullQueue,
+    PullQueueConfig,
     Task,
     Worker,
+    WorkerConfig,
 )
 
 
@@ -21,8 +24,9 @@ async def test_worker_processes_task_and_stops() -> None:
     repo = InMemoryTaskRepository()
     q = PullQueue(
         repo,
-        priority_order=("high",),
-        weights={"high": 1},
+        config=PullQueueConfig(
+            scheduler=DeficitSchedulerConfig(priority_order=("high",), weights={"high": 1}),
+        ),
     )
     await q.schedule(Task(priority="high", payload={"v": 1}))
     transport = LocalTransport(q)
@@ -33,7 +37,7 @@ async def test_worker_processes_task_and_stops() -> None:
         processed.append(task.id)
         return {"ok": True}
 
-    worker = Worker(transport, "w1", handle, no_work_delay_seconds=0.001)
+    worker = Worker(transport, "w1", handle, config=WorkerConfig(no_work_delay_seconds=0.001))
 
     async def stop_soon() -> None:
         await asyncio.sleep(0.05)

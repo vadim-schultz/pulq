@@ -10,6 +10,9 @@ __all__ = ["DeficitSchedulerConfig"]
 class DeficitSchedulerConfig(BaseModel):
     """Validated parameters for :class:`~pulq.core.scheduler.DeficitScheduler`.
 
+    With no arguments, defaults match the common three-tier setup: priorities
+    ``("high", "medium", "low")`` and weights ``3:2:1`` with ``quantum`` 1.
+
     ``priority_order`` defines visit order among buckets that share a claimable
     deficit. ``weights`` must contain exactly one positive integer weight per
     priority in ``priority_order``, and no other keys.
@@ -17,8 +20,12 @@ class DeficitSchedulerConfig(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    priority_order: tuple[str, ...]
-    weights: dict[str, int]
+    priority_order: tuple[str, ...] = Field(
+        default_factory=lambda: ("high", "medium", "low"),
+    )
+    weights: dict[str, int] = Field(
+        default_factory=lambda: {"high": 3, "medium": 2, "low": 1},
+    )
     quantum: int = Field(default=1, ge=1, description="Deficit debited per successful claim")
 
     @field_validator("weights", mode="after")

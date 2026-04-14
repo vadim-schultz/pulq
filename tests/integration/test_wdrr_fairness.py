@@ -11,12 +11,7 @@ from pulq import InMemoryTaskRepository, PullQueue, Task
 async def test_three_two_one_weights_approximate_order() -> None:
     """Pull subset to observe WDRR weight distribution (3:2:1 → ~50%:33%:17%)."""
     repo = InMemoryTaskRepository()
-    q = PullQueue(
-        repo,
-        priority_order=("high", "medium", "low"),
-        weights={"high": 3, "medium": 2, "low": 1},
-        quantum=1,
-    )
+    q = PullQueue(repo)
     # Schedule 100 tasks per priority
     for _ in range(100):
         await q.schedule(Task(priority="high", payload={}))

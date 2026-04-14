@@ -4,6 +4,7 @@ from pulq.core import (
     CommandDispatcher,
     DeficitScheduler,
     PullQueue,
+    PullQueueConfig,
     Worker,
 )
 from pulq.models import (
@@ -16,6 +17,8 @@ from pulq.models import (
     NoWorkReason,
     Task,
     TaskStatus,
+    WorkerConfig,
+    WorkerHooks,
     WorkResponse,
 )
 from pulq.parsing import parse_claim_result, parse_work_response
@@ -40,6 +43,7 @@ __all__ = [
     "NoWork",
     "NoWorkReason",
     "PullQueue",
+    "PullQueueConfig",
     "Queue",
     "Task",
     "TaskHandler",
@@ -48,8 +52,10 @@ __all__ = [
     "Transport",
     "WorkResponse",
     "Worker",
+    "WorkerConfig",
+    "WorkerHooks",
     "parse_claim_result",
     "parse_work_response",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"

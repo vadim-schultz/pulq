@@ -11,6 +11,7 @@ from pulq import (
     NoWork,
     NoWorkReason,
     PullQueue,
+    PullQueueConfig,
     Task,
 )
 
@@ -47,11 +48,6 @@ async def test_heartbeat_callback(repo: InMemoryTaskRepository) -> None:
     async def beat(wid: str) -> None:
         calls.append(wid)
 
-    q = PullQueue(
-        repo,
-        priority_order=("high", "medium", "low"),
-        weights={"high": 3, "medium": 2, "low": 1},
-        on_heartbeat=beat,
-    )
+    q = PullQueue(repo, config=PullQueueConfig(on_heartbeat=beat))
     await q.get_next("wh")
     assert calls == ["wh"]

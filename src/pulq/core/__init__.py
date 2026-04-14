@@ -2,6 +2,7 @@
 
 from pulq.core.dispatcher import CommandDispatcher
 from pulq.core.pull_queue import PullQueue
+from pulq.core.queue_config import PullQueueConfig
 from pulq.core.scheduler import DeficitScheduler, DeficitSchedulerConfig
 from pulq.core.worker import Worker
 
@@ -10,5 +11,6 @@ __all__ = [
     "DeficitScheduler",
     "DeficitSchedulerConfig",
     "PullQueue",
+    "PullQueueConfig",
     "Worker",
 ]

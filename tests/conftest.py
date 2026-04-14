@@ -14,9 +14,4 @@ def repo() -> InMemoryTaskRepository:
 
 @pytest.fixture
 def queue(repo: InMemoryTaskRepository) -> PullQueue:
-    return PullQueue(
-        repo,
-        priority_order=("high", "medium", "low"),
-        weights={"high": 3, "medium": 2, "low": 1},
-        quantum=1,
-    )
+    return PullQueue(repo)

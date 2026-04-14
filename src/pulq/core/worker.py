@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections.abc import Awaitable, Callable, Mapping
 from typing import Any
 
 from pulq.models import CommandType, ManagementCommand, NoWork, Task
+from pulq.models.worker_config import WorkerConfig
 from pulq.types import TaskHandler, Transport
 
 __all__ = ["Worker"]
@@ -16,7 +16,11 @@ logger = logging.getLogger(__name__)
 
 
 class Worker:
-    """Pull loop: commands, tasks, and optional backoff on :class:`~pulq.models.NoWork`."""
+    """Pull loop: commands, tasks, and optional backoff on :class:`~pulq.models.NoWork`.
+
+    Pass ``config`` for idle delay and lifecycle hooks (``WorkerConfig``).
+    Omit ``config`` for a short default backoff when idle and no hooks.
+    """
 
     def __init__(
         self,
@@ -24,20 +28,17 @@ class Worker:
         worker_id: str,
         handler: TaskHandler,
         *,
-        no_work_delay_seconds: float = 0.0,
-        startup: Callable[[], Awaitable[None]] | None = None,
-        shutdown: Callable[[], Awaitable[None]] | None = None,
-        before_process: Callable[[Task], Awaitable[None]] | None = None,
-        after_process: Callable[[Task, Mapping[str, Any]], Awaitable[None]] | None = None,
+        config: WorkerConfig | None = None,
     ) -> None:
+        cfg = config or WorkerConfig()
         self._transport = transport
         self._worker_id = worker_id
         self._handler = handler
-        self._no_work_delay_seconds = no_work_delay_seconds
-        self._startup = startup
-        self._shutdown = shutdown
-        self._before_process = before_process
-        self._after_process = after_process
+        self._no_work_delay_seconds = cfg.no_work_delay_seconds
+        self._startup = cfg.hooks.startup
+        self._shutdown = cfg.hooks.shutdown
+        self._before_process = cfg.hooks.before_process
+        self._after_process = cfg.hooks.after_process
 
     @property
     def worker_id(self) -> str:

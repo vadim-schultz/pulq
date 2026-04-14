@@ -8,18 +8,27 @@ import pytest
 
 from pulq import (
     CommandType,
+    DeficitSchedulerConfig,
     InMemoryTaskRepository,
     LocalTransport,
     PullQueue,
+    PullQueueConfig,
     Task,
     Worker,
+    WorkerConfig,
+    WorkerHooks,
 )
 
 
 @pytest.mark.asyncio
 async def test_startup_shutdown_and_after_process() -> None:
     repo = InMemoryTaskRepository()
-    q = PullQueue(repo, priority_order=("high",), weights={"high": 1})
+    q = PullQueue(
+        repo,
+        config=PullQueueConfig(
+            scheduler=DeficitSchedulerConfig(priority_order=("high",), weights={"high": 1}),
+        ),
+    )
     await q.schedule(Task(priority="high", payload={}))
     transport = LocalTransport(q)
 
@@ -41,10 +50,10 @@ async def test_startup_shutdown_and_after_process() -> None:
         transport,
         "w",
         handle,
-        no_work_delay_seconds=0.001,
-        startup=startup,
-        shutdown=shutdown,
-        after_process=after,
+        config=WorkerConfig(
+            no_work_delay_seconds=0.001,
+            hooks=WorkerHooks(startup=startup, shutdown=shutdown, after_process=after),
+        ),
     )
 
     async def fire_stop() -> None:

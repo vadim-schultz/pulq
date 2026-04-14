@@ -4,7 +4,8 @@
 
 * **Worker** → **Transport** → **PullQueue** → **CommandDispatcher** / **DeficitScheduler** / **TaskRepository**
 
-* **PullQueue** — orchestrates heartbeat hooks, management commands, WDRR, and storage claims.
+* **PullQueue** — orchestrates heartbeat hooks, management commands, WDRR, and storage claims. Constructor options are grouped in {py:class}`pulq.core.queue_config.PullQueueConfig` (defaults give a standard three-priority WDRR setup).
+* **Worker** — pull loop; behavior and lifecycle hooks are configured via {py:class}`pulq.models.worker_config.WorkerConfig` / {py:class}`pulq.models.worker_config.WorkerHooks`.
 * **DeficitScheduler** — pure deficit ledger (credits per epoch, debit on claim, zero-out on empty priority).
 * **CommandDispatcher** — per-`worker_id` FIFO of {py:class}`pulq.models.ManagementCommand`.
 * **TaskRepository** — protocol for enqueue + atomic claim + completion (default: {py:class}`pulq.storage.memory.InMemoryTaskRepository`).
@@ -18,7 +19,9 @@ The package groups Pydantic types by concern:
 * {py:mod}`pulq.models.task` — `Task`
 * {py:mod}`pulq.models.work` — `ManagementCommand`, `NoWork`, `NoPendingTask`
 * {py:mod}`pulq.models.unions` — `WorkResponse` and `ClaimResult` type aliases with discriminated union validation
-* {py:mod}`pulq.models.scheduler_config` — `DeficitSchedulerConfig` (WDRR parameters; also re-exported from {py:mod}`pulq.core.scheduler` for convenience)
+* {py:mod}`pulq.models.scheduler_config` — `DeficitSchedulerConfig` (WDRR parameters; embedded in `PullQueueConfig.scheduler`; also re-exported from {py:mod}`pulq.core.scheduler` for convenience)
+* {py:mod}`pulq.core.queue_config` — `PullQueueConfig` (queue-level settings, including optional `commands` injection for tests)
+* {py:mod}`pulq.models.worker_config` — `WorkerConfig`, `WorkerHooks`
 
 Wire formats are parsed with {py:mod}`pulq.parsing` using Pydantic's `TypeAdapter`.
 

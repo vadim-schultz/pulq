@@ -8,6 +8,13 @@ from pydantic import ValidationError
 from pulq.core.scheduler import DeficitScheduler, DeficitSchedulerConfig
 
 
+def test_default_scheduler_config() -> None:
+    cfg = DeficitSchedulerConfig()
+    assert cfg.priority_order == ("high", "medium", "low")
+    assert cfg.weights == {"high": 3, "medium": 2, "low": 1}
+    assert cfg.quantum == 1
+
+
 def test_quantum_must_be_positive() -> None:
     with pytest.raises(ValidationError):
         DeficitSchedulerConfig(priority_order=("a",), weights={"a": 1}, quantum=0)

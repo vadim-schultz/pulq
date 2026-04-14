@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import Any
 
 from pulq.core.dispatcher import CommandDispatcher
+from pulq.core.queue_config import PullQueueConfig
 from pulq.core.scheduler import DeficitScheduler
 from pulq.models import (
     CommandType,
@@ -15,36 +15,30 @@ from pulq.models import (
     Task,
     WorkResponse,
 )
-from pulq.models.scheduler_config import DeficitSchedulerConfig
-from pulq.types import HeartbeatCallback, TaskRepository
+from pulq.types import TaskRepository
 
 __all__ = ["PullQueue"]
 
 
 class PullQueue:
-    """Coordinates deficit scheduling, per-worker commands, and task claims."""
+    """Coordinates deficit scheduling, per-worker commands, and task claims.
+
+    Pass ``config`` to customize WDRR (see ``DeficitSchedulerConfig``), inject a
+    ``CommandDispatcher``, or set a heartbeat callback.
+    Omit ``config`` for the default three-priority (high / medium / low) 3:2:1 setup.
+    """
 
     def __init__(
         self,
         repository: TaskRepository,
         *,
-        priority_order: tuple[str, ...],
-        weights: Mapping[str, int],
-        quantum: int = 1,
-        commands: CommandDispatcher | None = None,
-        deficits: DeficitScheduler | None = None,
-        on_heartbeat: HeartbeatCallback | None = None,
+        config: PullQueueConfig | None = None,
     ) -> None:
+        cfg = config or PullQueueConfig()
         self._repository = repository
-        self._commands = commands or CommandDispatcher()
-        self._deficits = deficits or DeficitScheduler(
-            DeficitSchedulerConfig(
-                priority_order=priority_order,
-                weights=dict(weights),
-                quantum=quantum,
-            ),
-        )
-        self._on_heartbeat = on_heartbeat
+        self._commands = cfg.commands or CommandDispatcher()
+        self._deficits = DeficitScheduler(cfg.scheduler)
+        self._on_heartbeat = cfg.on_heartbeat
 
     @property
     def commands(self) -> CommandDispatcher:

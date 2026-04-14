@@ -23,6 +23,8 @@ pip install pulq
 
 ## Quick start
 
+`PullQueue` and `Worker` use **sensible defaults** so you can schedule tasks and run a worker with almost no configuration:
+
 ```python
 import asyncio
 
@@ -40,17 +42,12 @@ async def handle(task: Task) -> dict:
 
 async def main() -> None:
     repo = InMemoryTaskRepository()
-    queue = PullQueue(
-        repo,
-        priority_order=("high", "medium", "low"),
-        weights={"high": 3, "medium": 2, "low": 1},
-        quantum=1,
-    )
+    queue = PullQueue(repo)  # default: high / medium / low with 3:2:1 weights, quantum 1
     await queue.schedule(Task(priority="high", payload={"job": "a"}))
     await queue.schedule(Task(priority="low", payload={"job": "b"}))
 
     transport = LocalTransport(queue)
-    worker = Worker(transport, "worker-1", handle, no_work_delay_seconds=0.01)
+    worker = Worker(transport, "worker-1", handle)  # default short backoff when idle
 
     async def stop_later() -> None:
         await asyncio.sleep(0.05)
@@ -59,6 +56,35 @@ async def main() -> None:
     await asyncio.gather(worker.run(), stop_later())
 
 asyncio.run(main())
+```
+
+### Customizing with Pydantic config
+
+For different priorities, weights, quantum, or worker hooks, pass validated config objects:
+
+```python
+from pulq import DeficitSchedulerConfig, PullQueueConfig, WorkerConfig, WorkerHooks
+
+queue = PullQueue(
+    repo,
+    config=PullQueueConfig(
+        scheduler=DeficitSchedulerConfig(
+            priority_order=("critical", "high", "low"),
+            weights={"critical": 5, "high": 3, "low": 1},
+            quantum=2,
+        ),
+    ),
+)
+
+worker = Worker(
+    transport,
+    "worker-1",
+    handle,
+    config=WorkerConfig(
+        no_work_delay_seconds=0.05,
+        hooks=WorkerHooks(startup=my_startup, shutdown=my_shutdown),
+    ),
+)
 ```
 
 ## Documentation

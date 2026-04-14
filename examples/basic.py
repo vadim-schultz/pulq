@@ -1,4 +1,10 @@
-"""Minimal in-process example."""
+"""Minimal in-process example.
+
+Uses the library defaults: three priorities (high / medium / low) with 3:2:1
+weights, quantum 1, and a short idle delay between pulls when the queue is
+empty. For custom WDRR settings, pass ``config=PullQueueConfig(...)``; for
+worker hooks or a different idle delay, use ``config=WorkerConfig(...)``.
+"""
 
 from __future__ import annotations
 
@@ -20,14 +26,11 @@ async def handle(task: Task) -> dict[str, bool | str]:
 
 async def main() -> None:
     repo = InMemoryTaskRepository()
-    queue = PullQueue(
-        repo,
-        priority_order=("high", "medium", "low"),
-        weights={"high": 3, "medium": 2, "low": 1},
-    )
+    queue = PullQueue(repo)
     await queue.schedule(Task(priority="high", payload={"job": "a"}))
+    await queue.schedule(Task(priority="medium", payload={"job": "b"}))
     transport = LocalTransport(queue)
-    worker = Worker(transport, "worker-1", handle, no_work_delay_seconds=0.01)
+    worker = Worker(transport, "worker-1", handle)
 
     async def stop_after_short_delay() -> None:
         await asyncio.sleep(0.05)
