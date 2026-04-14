@@ -4,7 +4,14 @@
 
 [![CI](https://github.com/vadim-schultz/pulq/actions/workflows/ci.yml/badge.svg)](https://github.com/vadim-schultz/pulq/actions/workflows/ci.yml)
 [![Documentation Status](https://readthedocs.org/projects/pulq/badge/?version=latest)](https://pulq.readthedocs.io/en/latest/?badge=latest)
-[![PyPI version](https://badge.fury.io/py/pulq.svg)](https://pypi.org/project/pulq/)
+[![codecov](https://codecov.io/gh/vadim-schultz/pulq/branch/main/graph/badge.svg)](https://codecov.io/gh/vadim-schultz/pulq)
+[![PyPI version](https://img.shields.io/pypi/v/pulq)](https://pypi.org/project/pulq/)
+
+[![Python versions](https://img.shields.io/pypi/pyversions/pulq)](https://pypi.org/project/pulq/)
+[![License](https://img.shields.io/pypi/l/pulq)](https://github.com/vadim-schultz/pulq/blob/main/LICENSE)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![Typing: Strict](https://img.shields.io/badge/typing-strict-blue)](https://github.com/vadim-schultz/pulq/blob/main/pyproject.toml)
 
 PULQ schedules **pull-based** work across named priority buckets using **Weighted Deficit Round Robin (WDRR)** so higher-weight classes get proportionally more CPU time without starving lower classes. Management commands (e.g. **STOP**) are delivered per worker ahead of normal tasks.
 
