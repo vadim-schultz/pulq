@@ -12,6 +12,7 @@ architecture
 scheduling
 extending
 api
+releasing
 ```
 
 ## Indices

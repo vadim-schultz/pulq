@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.2 — 2026-04-14
+
+### Added
+
+* Automated release workflow (`.github/workflows/release.yml`) that triggers on merge to main: extracts version from `pyproject.toml`, creates git tags, builds packages, publishes to PyPI via trusted publishing, and creates GitHub releases.
+* Documentation for release process in `docs/releasing.md` with PyPI trusted publishing setup instructions.
+
+### Changed
+
+* Manual publish workflow (`.github/workflows/publish.yml`) updated with `workflow_dispatch` input for dry-run builds.
+* README and docs index now reference the release documentation.
+
 ## 0.1.1 — 2026-04-14
 
 ### Added

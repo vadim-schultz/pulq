@@ -102,6 +102,8 @@ mypy src
 pytest
 ```
 
+**Releases (PyPI + Read the Docs):** after bumping the version in `pyproject.toml` and updating `CHANGELOG.md`, merge to `main` — see [docs/releasing.md](docs/releasing.md) for trusted publishing setup on PyPI and manual options.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

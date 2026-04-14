@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pulq"
-version = "0.1.1"
+version = "0.1.2"
 description = "Fair task scheduling with async pull: WDRR-based priority queue for Python"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = "MIT"
