@@ -2,8 +2,9 @@
 
 Uses the library defaults: three priorities (high / medium / low) with 3:2:1
 weights, quantum 1, and a short idle delay between pulls when the queue is
-empty. For custom WDRR settings, pass ``config=PullQueueConfig(...)``; for
-worker hooks or a different idle delay, use ``config=WorkerConfig(...)``.
+empty. For custom WDRR settings, pass ``config=PullQueueConfig(...)``; for a
+different idle delay or lifecycle hooks, use ``HandlerRegistry`` and
+``config=WorkerConfig(...)``.
 """
 
 from __future__ import annotations
@@ -27,8 +28,8 @@ async def handle(task: Task) -> dict[str, bool | str]:
 async def main() -> None:
     repo = InMemoryTaskRepository()
     queue = PullQueue(repo)
-    await queue.schedule(Task(priority="high", payload={"job": "a"}))
-    await queue.schedule(Task(priority="medium", payload={"job": "b"}))
+    await queue.schedule(Task(priority="high", handler_name="default", payload={"job": "a"}))
+    await queue.schedule(Task(priority="medium", handler_name="default", payload={"job": "b"}))
     transport = LocalTransport(queue)
     worker = Worker(transport, "worker-1", handle)
 

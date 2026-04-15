@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from types import TracebackType
+from typing import Any, Protocol, Self
 
 from pulq.models import ClaimResult, Task, WorkResponse
 
@@ -30,7 +31,30 @@ class TaskRepository(Protocol):
 
 
 class Transport(Protocol):
-    """How a worker obtains work and reports completion (local, HTTP, …)."""
+    """How a worker obtains work and reports completion (local, HTTP, …).
+
+    :class:`~pulq.core.worker.Worker` runs ``async with transport``, which must
+    call :meth:`setup_transport` on enter and :meth:`teardown_transport` on exit.
+    In-process transports use no-ops; remote transports open/close connections
+    there. Standalone code may use the same ``async with`` pattern.
+    """
+
+    async def setup_transport(self) -> None:
+        """Prepare wire resources (e.g. open an HTTP client)."""
+
+    async def teardown_transport(self) -> None:
+        """Release wire resources (e.g. close connections)."""
+
+    async def __aenter__(self) -> Self:
+        """Enter context: typically ``await setup_transport()`` then ``return self``."""
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        """Exit context: typically ``await teardown_transport()``."""
 
     async def request_work(self, worker_id: str) -> WorkResponse:
         """Pull the next schedulable item for ``worker_id``."""

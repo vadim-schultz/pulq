@@ -28,7 +28,7 @@ async def test_worker_ignores_pause_then_stops() -> None:
             scheduler=DeficitSchedulerConfig(priority_order=("high",), weights={"high": 1}),
         ),
     )
-    await q.schedule(Task(priority="high", payload={}))
+    await q.schedule(Task(priority="high", handler_name="default", payload={}))
     transport = LocalTransport(q)
 
     async def handle(_task: Task) -> dict[str, bool]:

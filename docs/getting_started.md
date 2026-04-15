@@ -38,7 +38,7 @@ async def handle(task: Task) -> dict:
 async def main() -> None:
     repo = InMemoryTaskRepository()
     queue = PullQueue(repo)
-    await queue.schedule(Task(priority="high", payload={"job": "example"}))
+    await queue.schedule(Task(priority="high", handler_name="default", payload={"job": "example"}))
     transport = LocalTransport(queue)
     worker = Worker(transport, "worker-1", handle)
 
@@ -53,14 +53,14 @@ asyncio.run(main())
 
 ## Configuration objects
 
-When you need different WDRR parameters, an optional heartbeat on each pull, or worker lifecycle hooks, use `PullQueueConfig` and `WorkerConfig` (both Pydantic models with validation):
+When you need different WDRR parameters, an optional heartbeat on each pull, or worker lifecycle hooks, use `PullQueueConfig`, `HandlerRegistry`, and `WorkerConfig`:
 
 ```python
 from pulq import (
     DeficitSchedulerConfig,
+    HandlerRegistry,
     PullQueueConfig,
     WorkerConfig,
-    WorkerHooks,
 )
 
 queue = PullQueue(
@@ -76,15 +76,13 @@ queue = PullQueue(
 async def on_start() -> None:
     ...
 
+registry = HandlerRegistry(default=handle, startup=on_start)
 worker = Worker(
     transport,
     "worker-1",
-    handle,
-    config=WorkerConfig(
-        no_work_delay_seconds=0.02,
-        hooks=WorkerHooks(startup=on_start),
-    ),
+    registry,
+    config=WorkerConfig(no_work_delay_seconds=0.02),
 )
 ```
 
-See also the `examples/` directory in the repository.
+See {doc}`transports` for HTTP and repository notes, and the `examples/` directory in the repository.

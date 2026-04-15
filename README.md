@@ -21,6 +21,8 @@ PULQ schedules **pull-based** work across named priority buckets using **Weighte
 pip install pulq
 ```
 
+For HTTP client transport: `pip install pulq[http]` — see [docs/transports.md](docs/transports.md).
+
 ## Quick start
 
 `PullQueue` and `Worker` use **sensible defaults** so you can schedule tasks and run a worker with almost no configuration:
@@ -43,8 +45,8 @@ async def handle(task: Task) -> dict:
 async def main() -> None:
     repo = InMemoryTaskRepository()
     queue = PullQueue(repo)  # default: high / medium / low with 3:2:1 weights, quantum 1
-    await queue.schedule(Task(priority="high", payload={"job": "a"}))
-    await queue.schedule(Task(priority="low", payload={"job": "b"}))
+    await queue.schedule(Task(priority="high", handler_name="default", payload={"job": "a"}))
+    await queue.schedule(Task(priority="low", handler_name="default", payload={"job": "b"}))
 
     transport = LocalTransport(queue)
     worker = Worker(transport, "worker-1", handle)  # default short backoff when idle
@@ -60,10 +62,10 @@ asyncio.run(main())
 
 ### Customizing with Pydantic config
 
-For different priorities, weights, quantum, or worker hooks, pass validated config objects:
+For different priorities, weights, quantum, or worker lifecycle hooks on the **handler registry**, pass validated config objects:
 
 ```python
-from pulq import DeficitSchedulerConfig, PullQueueConfig, WorkerConfig, WorkerHooks
+from pulq import DeficitSchedulerConfig, HandlerRegistry, PullQueueConfig, WorkerConfig
 
 queue = PullQueue(
     repo,
@@ -76,16 +78,16 @@ queue = PullQueue(
     ),
 )
 
+registry = HandlerRegistry(default=handle, startup=my_startup, shutdown=my_shutdown)
 worker = Worker(
     transport,
     "worker-1",
-    handle,
-    config=WorkerConfig(
-        no_work_delay_seconds=0.05,
-        hooks=WorkerHooks(startup=my_startup, shutdown=my_shutdown),
-    ),
+    registry,
+    config=WorkerConfig(no_work_delay_seconds=0.05),
 )
 ```
+
+More on **HTTP vs local** and **repositories**: [docs/transports.md](docs/transports.md).
 
 ## Documentation
 

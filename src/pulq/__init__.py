@@ -3,10 +3,12 @@
 from pulq.core import (
     CommandDispatcher,
     DeficitScheduler,
+    HandlerRegistry,
     PullQueue,
     PullQueueConfig,
     Worker,
 )
+from pulq.errors import TaskNotFoundError, TransportHttpError
 from pulq.models import (
     ClaimResult,
     CommandType,
@@ -15,11 +17,16 @@ from pulq.models import (
     NoPendingTask,
     NoWork,
     NoWorkReason,
+    ReportCompletionRequest,
+    ReportCompletionResponse,
+    RequestWorkRequest,
+    ScheduleTaskRequest,
+    SendCommandRequest,
     Task,
     TaskStatus,
     WorkerConfig,
-    WorkerHooks,
     WorkResponse,
+    WorkResponseBody,
 )
 from pulq.parsing import parse_claim_result, parse_work_response
 from pulq.storage import InMemoryTaskRepository
@@ -35,7 +42,9 @@ __all__ = [
     "CommandType",
     "DeficitScheduler",
     "DeficitSchedulerConfig",
+    "HandlerRegistry",
     "HeartbeatCallback",
+    "HttpTransport",
     "InMemoryTaskRepository",
     "LocalTransport",
     "ManagementCommand",
@@ -45,17 +54,33 @@ __all__ = [
     "PullQueue",
     "PullQueueConfig",
     "Queue",
+    "ReportCompletionRequest",
+    "ReportCompletionResponse",
+    "RequestWorkRequest",
+    "ScheduleTaskRequest",
+    "SendCommandRequest",
     "Task",
     "TaskHandler",
+    "TaskNotFoundError",
     "TaskRepository",
     "TaskStatus",
     "Transport",
+    "TransportHttpError",
     "WorkResponse",
+    "WorkResponseBody",
     "Worker",
     "WorkerConfig",
-    "WorkerHooks",
     "parse_claim_result",
     "parse_work_response",
 ]
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
+
+
+def __getattr__(name: str) -> object:
+    if name == "HttpTransport":
+        from pulq.transport.http import HttpTransport as HttpTransport_cls
+
+        return HttpTransport_cls
+    msg = f"module {__name__!r} has no attribute {name!r}"
+    raise AttributeError(msg)

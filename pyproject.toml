@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pulq"
-version = "0.1.2"
+version = "0.2.0"
 description = "Fair task scheduling with async pull: WDRR-based priority queue for Python"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = "MIT"
@@ -27,6 +27,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+http = [
+    "httpx>=0.27",
+    "truststore>=0.9",
+]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
@@ -34,6 +38,8 @@ dev = [
     "ruff>=0.3",
     "mypy>=1.9",
     "hypothesis>=6.0",
+    "httpx>=0.27",
+    "truststore>=0.9",
 ]
 docs = [
     "sphinx>=7.0",
@@ -66,6 +72,8 @@ ignore = ["S101"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/pulq/**/*.py" = ["TC001", "TC003"]
+"src/pulq/__init__.py" = ["TC001", "TC003", "PLC0415"]
+"src/pulq/transport/__init__.py" = ["PLC0415"]
 "tests/**/*.py" = ["S101", "PLR2004", "ANN001"]
 "examples/**/*.py" = ["T201"]
 "benchmarks/**/*.py" = ["T201"]

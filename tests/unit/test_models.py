@@ -17,7 +17,7 @@ from pulq.parsing import parse_claim_result, parse_work_response
 
 
 def test_parse_work_response_task() -> None:
-    t = Task(priority="p", payload={"a": 1})
+    t = Task(priority="p", handler_name="h", payload={"a": 1})
     parsed = parse_work_response(t.model_dump(mode="json"))
     assert isinstance(parsed, Task)
     assert parsed.priority == "p"
@@ -46,6 +46,6 @@ def test_parse_claim_no_pending() -> None:
 
 
 def test_parse_claim_task() -> None:
-    t = Task(priority="p", payload={})
+    t = Task(priority="p", handler_name="h", payload={})
     parsed = parse_claim_result(t.model_dump(mode="json"))
     assert isinstance(parsed, Task)

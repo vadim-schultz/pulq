@@ -11,7 +11,7 @@ from pulq.errors import TaskNotFoundError
 @pytest.mark.asyncio
 async def test_schedule_non_pending_rejected() -> None:
     r = InMemoryTaskRepository()
-    t = Task(priority="h", payload={}, status=TaskStatus.RUNNING)
+    t = Task(priority="h", handler_name="x", payload={}, status=TaskStatus.RUNNING)
     with pytest.raises(ValueError, match="PENDING"):
         await r.schedule(t)
 

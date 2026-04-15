@@ -15,9 +15,9 @@ async def run(n_tasks_per_priority: int = 100, n_pulls: int = 100) -> None:
     repo = InMemoryTaskRepository()
     q = PullQueue(repo)
     for _ in range(n_tasks_per_priority):
-        await q.schedule(Task(priority="high", payload={}))
-        await q.schedule(Task(priority="medium", payload={}))
-        await q.schedule(Task(priority="low", payload={}))
+        await q.schedule(Task(priority="high", handler_name="bench", payload={}))
+        await q.schedule(Task(priority="medium", handler_name="bench", payload={}))
+        await q.schedule(Task(priority="low", handler_name="bench", payload={}))
 
     counts = {"high": 0, "medium": 0, "low": 0}
     for _ in range(n_pulls):

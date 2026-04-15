@@ -14,9 +14,9 @@ async def test_three_two_one_weights_approximate_order() -> None:
     q = PullQueue(repo)
     # Schedule 100 tasks per priority
     for _ in range(100):
-        await q.schedule(Task(priority="high", payload={}))
-        await q.schedule(Task(priority="medium", payload={}))
-        await q.schedule(Task(priority="low", payload={}))
+        await q.schedule(Task(priority="high", handler_name="bench", payload={}))
+        await q.schedule(Task(priority="medium", handler_name="bench", payload={}))
+        await q.schedule(Task(priority="low", handler_name="bench", payload={}))
 
     # Pull only 100 (leaving 200 unprocessed)
     counts = {"high": 0, "medium": 0, "low": 0}

@@ -23,6 +23,10 @@
    :members:
    :undoc-members:
 
+.. automodule:: pulq.core.handler_registry
+   :members:
+   :undoc-members:
+
 .. automodule:: pulq.models.enums
    :members:
    :undoc-members:
@@ -52,6 +56,18 @@
    :undoc-members:
 
 .. automodule:: pulq.transport.local
+   :members:
+   :undoc-members:
+
+.. automodule:: pulq.transport.http
+   :members:
+   :undoc-members:
+
+.. automodule:: pulq.models.http
+   :members:
+   :undoc-members:
+
+.. automodule:: pulq.errors
    :members:
    :undoc-members:
 

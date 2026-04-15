@@ -18,7 +18,7 @@ from pulq import (
 
 @pytest.mark.asyncio
 async def test_management_command_preempts_tasks(queue: PullQueue) -> None:
-    await queue.schedule(Task(priority="high", payload={}))
+    await queue.schedule(Task(priority="high", handler_name="x", payload={}))
     queue.send_command("w1", CommandType.PAUSE)
     work = await queue.get_next("w1")
     assert isinstance(work, ManagementCommand)
@@ -27,8 +27,8 @@ async def test_management_command_preempts_tasks(queue: PullQueue) -> None:
 
 @pytest.mark.asyncio
 async def test_wdrr_prefers_higher_weight(queue: PullQueue) -> None:
-    await queue.schedule(Task(priority="low", payload={"n": "l"}))
-    await queue.schedule(Task(priority="high", payload={"n": "h"}))
+    await queue.schedule(Task(priority="low", handler_name="x", payload={"n": "l"}))
+    await queue.schedule(Task(priority="high", handler_name="x", payload={"n": "h"}))
     first = await queue.get_next("w")
     assert isinstance(first, Task)
     assert first.payload["n"] == "h"

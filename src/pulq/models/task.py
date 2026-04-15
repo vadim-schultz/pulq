@@ -19,6 +19,9 @@ class Task(BaseModel):
     type: Literal["task"] = "task"
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     priority: str
+    handler_name: str = Field(
+        description="Name of the handler on the worker that will execute this task",
+    )
     payload: dict[str, Any]
     metadata: dict[str, Any] = Field(default_factory=dict)
     status: TaskStatus = TaskStatus.PENDING

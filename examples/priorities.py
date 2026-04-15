@@ -18,7 +18,7 @@ async def main() -> None:
     queue = PullQueue(repo)
     for p in ("low", "medium", "high"):
         for i in range(5):
-            await queue.schedule(Task(priority=p, payload={"p": p, "i": i}))
+            await queue.schedule(Task(priority=p, handler_name="demo", payload={"p": p, "i": i}))
 
     order: list[str] = []
     for _ in range(15):

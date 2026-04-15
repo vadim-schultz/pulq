@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.2.0 — 2026-04-15
+
+### Added
+
+* `Task.handler_name` — required string for worker-side handler dispatch (RPC-style).
+* `HandlerRegistry` in `pulq.core.handler_registry` — named handlers plus `default`, `startup`, `shutdown`, `before_process`, `after_process`.
+* `HttpTransport` in `pulq.transport.http` (optional dependency group `pulq[http]`): `request_work` and `report_completion` over HTTP; lazy-imported from `pulq` when `httpx` is installed.
+* Pydantic HTTP contract models in `pulq.models.http` (`RequestWorkRequest`, `ScheduleTaskRequest`, `SendCommandRequest`, etc.).
+* `TransportHttpError` in `pulq.errors`.
+* Example Litestar queue server under `examples/http_server/` (install `examples/http_server/requirements.txt` for the server).
+* Documentation page `docs/transports.md`.
+
+### Changed
+
+* `Worker(..., registry=...)` — third argument is a `TaskHandler` or `HandlerRegistry` (single handler is auto-wrapped).
+* `WorkerConfig` — only `no_work_delay_seconds` remains; hooks moved to `HandlerRegistry`.
+
+### Removed
+
+* `WorkerHooks` (alpha breaking change).
+
 ## 0.1.2 — 2026-04-14
 
 ### Added
