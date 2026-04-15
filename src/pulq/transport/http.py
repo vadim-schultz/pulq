@@ -10,19 +10,20 @@ from typing import Any, Self
 
 import httpx
 
-try:
-    import truststore as _truststore_import
-
-    _truststore: ModuleType | None = _truststore_import
-except ImportError:
-    _truststore: ModuleType | None = None
-
 from pulq.errors import TransportHttpError
 from pulq.models.enums import CommandType
 from pulq.models.http import ReportCompletionRequest, RequestWorkRequest, SendCommandRequest
 from pulq.models.task import Task
 from pulq.models.work import ManagementCommand, NoWork
 from pulq.parsing import parse_work_response
+
+_truststore: ModuleType | None
+try:
+    import truststore as _truststore_import
+
+    _truststore = _truststore_import
+except ImportError:
+    _truststore = None
 
 __all__ = ["HttpTransport"]
 
