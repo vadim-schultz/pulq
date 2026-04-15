@@ -5,15 +5,17 @@ from __future__ import annotations
 import os
 import ssl
 from dataclasses import dataclass, field
-from types import TracebackType
+from types import ModuleType, TracebackType
 from typing import Any, Self
 
 import httpx
 
 try:
-    import truststore as _truststore
+    import truststore as _truststore_import
+
+    _truststore: ModuleType | None = _truststore_import
 except ImportError:
-    _truststore = None
+    _truststore: ModuleType | None = None
 
 from pulq.errors import TransportHttpError
 from pulq.models.enums import CommandType

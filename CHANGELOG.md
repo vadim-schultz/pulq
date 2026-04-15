@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 — 2026-04-15
+
+### Fixed
+
+* Optional `truststore` import in `pulq.transport.http` is now typed as `ModuleType | None`, fixing mypy and Sphinx autodoc builds when `truststore` is absent or when static analysis runs on the module.
+
 ## 0.2.0 — 2026-04-15
 
 ### Added
