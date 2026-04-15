@@ -74,7 +74,7 @@ __all__ = [
     "parse_work_response",
 ]
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 
 def __getattr__(name: str) -> object:
