@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from redis.asyncio.lock import Lock
 
@@ -64,7 +64,8 @@ class RedisTaskRepository:
 
     async def _lrange_pending_ids(self, q_key: str) -> list[str]:
         """Return task ids in queue order (FIFO), or empty if the list is missing/empty."""
-        raw_ids = await self._redis.lrange(q_key, 0, -1)
+        # redis stubs union Awaitable[T] with T; async client always returns a coroutine.
+        raw_ids = await cast("Any", self._redis.lrange(q_key, 0, -1))
         return [self._decode_redis_str(x) for x in raw_ids]
 
     async def _pending_tasks_in_id_order(
@@ -160,12 +161,12 @@ class RedisTaskRepository:
     async def mark_complete(self, task_id: str, result: dict[str, Any]) -> Task:
         """Mark task completed unless ``result`` contains ``\"ok\": False``."""
         t_key = self._task_key(task_id)
-        raw = await self._redis.hget(t_key, _TASK_HASH_FIELD)
+        raw = await cast("Any", self._redis.hget(t_key, _TASK_HASH_FIELD))
         if raw is None:
             raise TaskNotFoundError(task_id)
         task = Task.model_validate_json(self._decode_redis_str(raw))
         ok = result.get("ok", True)
         new_status = TaskStatus.COMPLETED if ok else TaskStatus.FAILED
         updated = task.model_copy(update={"status": new_status}, deep=True)
-        await self._redis.hset(t_key, _TASK_HASH_FIELD, updated.model_dump_json())
+        await cast("Any", self._redis.hset(t_key, _TASK_HASH_FIELD, updated.model_dump_json()))
         return updated
