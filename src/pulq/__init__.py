@@ -70,6 +70,7 @@ __all__ = [
     "PullQueue",
     "PullQueueConfig",
     "Queue",
+    "RedisTaskRepository",
     "ReportCompletionRequest",
     "ReportCompletionResponse",
     "RequestWorkRequest",
@@ -109,5 +110,9 @@ def __getattr__(name: str) -> object:
         from pulq.transport.http import HttpTransport as HttpTransport_cls
 
         return HttpTransport_cls
+    if name == "RedisTaskRepository":
+        from pulq.storage.redis import RedisTaskRepository as RedisTaskRepository_cls
+
+        return RedisTaskRepository_cls
     msg = f"module {__name__!r} has no attribute {name!r}"
     raise AttributeError(msg)

@@ -7,8 +7,9 @@ from collections import defaultdict, deque
 from typing import Any
 
 from pulq.errors import TaskNotFoundError
-from pulq.models import NoPendingTask, PendingClaimed, PendingDequeExhausted, Task, TaskStatus
+from pulq.models import NoPendingTask, PendingClaimed, Task, TaskStatus
 from pulq.models.capabilities import DEFAULT_WORKER_CONTEXT, WorkerContext
+from pulq.storage._claim import scan_pending_deque_for_claim
 
 # This module is a reference `TaskRepository` for tests and local use, not a production
 # backend. It keeps process-local state only (no durability, no multi-process safety), and
@@ -17,43 +18,6 @@ from pulq.models.capabilities import DEFAULT_WORKER_CONTEXT, WorkerContext
 # repository backed by Redis, SQLite, PostgreSQL, MongoDB, or similar.
 
 __all__ = ["InMemoryTaskRepository"]
-
-
-def _running_claim_copy(task: Task, worker_id: str) -> Task:
-    """Return a deep copy of ``task`` marked RUNNING and assigned to ``worker_id``."""
-    return task.model_copy(
-        update={
-            "status": TaskStatus.RUNNING,
-            "assigned_worker_id": worker_id,
-        },
-        deep=True,
-    )
-
-
-def _scan_pending_deque_for_claim(
-    q: deque[str],
-    tasks: dict[str, Task],
-    worker_context: WorkerContext,
-    worker_id: str,
-) -> PendingClaimed | PendingDequeExhausted:
-    """Pop ids from ``q`` until a PENDING task assignable to ``worker_context`` is claimed."""
-    initial_len = len(q)
-    had_capability_mismatch = False
-    for _ in range(initial_len):
-        if not q:
-            break
-        task_id = q.popleft()
-        stored = tasks[task_id]
-        if stored.status != TaskStatus.PENDING:
-            continue
-        if not stored.assignable_by(worker_context):
-            q.append(task_id)
-            had_capability_mismatch = True
-            continue
-        claimed = _running_claim_copy(stored, worker_id)
-        tasks[task_id] = claimed
-        return PendingClaimed(task=claimed)
-    return PendingDequeExhausted(had_capability_mismatch=had_capability_mismatch)
 
 
 class InMemoryTaskRepository:
@@ -90,7 +54,7 @@ class InMemoryTaskRepository:
         matches ``worker_context``.
         """
         async with self._lock:
-            outcome = _scan_pending_deque_for_claim(
+            outcome = scan_pending_deque_for_claim(
                 self._pending_ids[priority],
                 self._tasks,
                 worker_context,

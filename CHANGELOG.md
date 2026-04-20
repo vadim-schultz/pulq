@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+* `RedisTaskRepository` in `pulq.storage.redis` (optional dependency `pip install pulq[redis]`): Redis-backed task storage with the same per-priority FIFO and capability-rotation semantics as `InMemoryTaskRepository`, using batched list operations under a per-priority Redis lock.
+* Shared pending-queue claim logic in `pulq.storage._claim` for memory and Redis backends.
+* Example `examples/redis_local/basic.py` for use with a local Redis (e.g. `docker run -p 6379:6379 redis:7`).
+
 ## 0.2.1 — 2026-04-15
 
 ### Fixed

@@ -12,7 +12,9 @@
 
 ### Storage backends
 
-The bundled {py:class}`~pulq.storage.memory.InMemoryTaskRepository` is a **reference implementation**: it is convenient for tests and single-process runs, but it is **not** aimed at production. It does not persist tasks, does not coordinate across processes or hosts, and claiming may scan pending ids in FIFO order until a task matches the worker’s capabilities—unlike indexed or partitioned backends (Redis, SQL databases, MongoDB, and similar) where claims can narrow candidates efficiently. Prefer implementing {py:class}`~pulq.types.TaskRepository` against such a store for production deployments.
+The bundled {py:class}`~pulq.storage.memory.InMemoryTaskRepository` is a **reference implementation** for tests and single-process runs: it does not persist tasks or coordinate across processes.
+
+For shared storage, install ``pulq[redis]`` and use {py:class}`~pulq.storage.redis.RedisTaskRepository`: Redis LISTs per priority, task documents in hashes, and atomic claims under a per-priority lock (same scheduling semantics as the in-memory backend). Other databases remain supported by implementing {py:class}`~pulq.types.TaskRepository` yourself.
 * **Transport** — protocol for async context (``setup_transport`` / ``teardown_transport``), `request_work` / `report_completion` (default: {py:class}`pulq.transport.local.LocalTransport`).
 
 ## Data models (`pulq.models`)

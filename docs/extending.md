@@ -11,6 +11,8 @@ Implement {py:class}`pulq.types.TaskRepository` with:
 
 Keep claims **atomic** if multiple workers pull concurrently.
 
+Bundled production-oriented backend: {py:class}`pulq.storage.redis.RedisTaskRepository` (requires ``pip install pulq[redis]``). It uses a Redis LIST per priority plus task hashes, with batched reads/writes under a per-priority lock so behavior matches {py:class}`~pulq.storage.memory.InMemoryTaskRepository` (including capability rotation). See ``examples/redis_local/basic.py`` and a local Redis instance (e.g. ``docker run -p 6379:6379 redis:7``).
+
 ## Custom `Transport`
 
 Implement {py:class}`pulq.types.Transport` to serialize `WorkResponse` over HTTP, gRPC, Redis, etc.
