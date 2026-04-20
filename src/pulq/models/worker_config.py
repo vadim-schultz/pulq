@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from pulq.models.capabilities import WorkerContext
+
 __all__ = ["WorkerConfig"]
 
 
@@ -16,4 +18,8 @@ class WorkerConfig(BaseModel):
         default=0.01,
         ge=0,
         description="Sleep duration after :class:`~pulq.models.NoWork` before polling again",
+    )
+    worker_context: WorkerContext = Field(
+        default_factory=WorkerContext,
+        description="Capability advertisement sent on each work pull (default: empty)",
     )

@@ -46,6 +46,7 @@ class Worker:
             registry if isinstance(registry, HandlerRegistry) else HandlerRegistry(default=registry)
         )
         self._no_work_delay_seconds = cfg.no_work_delay_seconds
+        self._worker_context = cfg.worker_context
         self._work_handlers: dict[type[Any], Callable[[Any], Awaitable[bool]]] = {
             NoWork: self._handle_no_work,
             ManagementCommand: self._handle_management_command,
@@ -70,7 +71,10 @@ class Worker:
 
     async def _loop(self) -> None:
         while True:
-            work = await self._transport.request_work(self._worker_id)
+            work = await self._transport.request_work(
+                self._worker_id,
+                worker_context=self._worker_context,
+            )
             if await self._dispatch_work(work):
                 return
 

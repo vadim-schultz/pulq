@@ -26,7 +26,10 @@ def create_app(queue: PullQueue) -> Litestar:
 
     @post("/request_work")
     async def request_work(data: RequestWorkRequest) -> dict[str, Any]:
-        work = await queue.get_next(data.worker_id)
+        work = await queue.get_next(
+            data.worker_id,
+            worker_context=data.worker_context,
+        )
         return work.model_dump(mode="json")
 
     @post("/complete")

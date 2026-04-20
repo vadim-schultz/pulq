@@ -8,10 +8,16 @@ from pulq.core import (
     PullQueueConfig,
     Worker,
 )
+from pulq.core.capability_digest import compute_capability_digest
+from pulq.core.capability_match import match_hw_requirement, satisfies
+from pulq.core.component_match import advertised_satisfies
 from pulq.errors import TaskNotFoundError, TransportHttpError
 from pulq.models import (
+    DEFAULT_WORKER_CONTEXT,
+    AdvertisedComponent,
     ClaimResult,
     CommandType,
+    ComponentRequirement,
     DeficitSchedulerConfig,
     ManagementCommand,
     NoPendingTask,
@@ -23,8 +29,15 @@ from pulq.models import (
     ScheduleTaskRequest,
     SendCommandRequest,
     Task,
+    TaskConstraints,
+    TaskExecutionAny,
+    TaskExecutionConstraints,
+    TaskExecutionDigest,
+    TaskExecutionRequirement,
+    TaskExecutionSetup,
     TaskStatus,
     WorkerConfig,
+    WorkerContext,
     WorkResponse,
     WorkResponseBody,
 )
@@ -37,9 +50,12 @@ from pulq.types import HeartbeatCallback, TaskHandler, TaskRepository, Transport
 Queue = PullQueue
 
 __all__ = [
+    "DEFAULT_WORKER_CONTEXT",
+    "AdvertisedComponent",
     "ClaimResult",
     "CommandDispatcher",
     "CommandType",
+    "ComponentRequirement",
     "DeficitScheduler",
     "DeficitSchedulerConfig",
     "HandlerRegistry",
@@ -60,6 +76,12 @@ __all__ = [
     "ScheduleTaskRequest",
     "SendCommandRequest",
     "Task",
+    "TaskConstraints",
+    "TaskExecutionAny",
+    "TaskExecutionConstraints",
+    "TaskExecutionDigest",
+    "TaskExecutionRequirement",
+    "TaskExecutionSetup",
     "TaskHandler",
     "TaskNotFoundError",
     "TaskRepository",
@@ -70,8 +92,13 @@ __all__ = [
     "WorkResponseBody",
     "Worker",
     "WorkerConfig",
+    "WorkerContext",
+    "advertised_satisfies",
+    "compute_capability_digest",
+    "match_hw_requirement",
     "parse_claim_result",
     "parse_work_response",
+    "satisfies",
 ]
 
 __version__ = "0.2.1"

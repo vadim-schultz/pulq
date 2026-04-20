@@ -6,6 +6,7 @@ import pytest
 
 from pulq import (
     CommandType,
+    DeficitSchedulerConfig,
     InMemoryTaskRepository,
     ManagementCommand,
     NoWork,
@@ -13,6 +14,8 @@ from pulq import (
     PullQueue,
     PullQueueConfig,
     Task,
+    TaskExecutionSetup,
+    WorkerContext,
 )
 
 
@@ -39,6 +42,29 @@ async def test_no_work_when_empty(queue: PullQueue) -> None:
     work = await queue.get_next("w")
     assert isinstance(work, NoWork)
     assert work.reason is NoWorkReason.ALL_PRIORITIES_STARVED
+
+
+@pytest.mark.asyncio
+async def test_no_capable_tasks_when_execution_target_mismatches_worker(
+    repo: InMemoryTaskRepository,
+) -> None:
+    q = PullQueue(
+        repo,
+        config=PullQueueConfig(
+            scheduler=DeficitSchedulerConfig(priority_order=("high",), weights={"high": 1}),
+        ),
+    )
+    await q.schedule(
+        Task(
+            priority="high",
+            handler_name="x",
+            payload={},
+            execution_target=TaskExecutionSetup(setup_name="other"),
+        ),
+    )
+    work = await q.get_next("w", worker_context=WorkerContext(setup_name="here"))
+    assert isinstance(work, NoWork)
+    assert work.reason is NoWorkReason.NO_CAPABLE_TASKS
 
 
 @pytest.mark.asyncio

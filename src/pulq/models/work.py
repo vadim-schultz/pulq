@@ -29,7 +29,11 @@ class NoWork(BaseModel):
 
 
 class NoPendingTask(BaseModel):
-    """Null object: no pending task was available for this priority."""
+    """Null object: no pending task for this priority given the worker's advertised capabilities."""
 
     type: Literal["no_pending"] = "no_pending"
     priority: str
+    had_capability_mismatch: bool = Field(
+        default=False,
+        description="True when pending tasks existed but none matched the worker context",
+    )

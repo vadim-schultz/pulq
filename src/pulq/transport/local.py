@@ -7,6 +7,7 @@ from typing import Any, Self
 
 from pulq.core.pull_queue import PullQueue
 from pulq.models import WorkResponse
+from pulq.models.capabilities import DEFAULT_WORKER_CONTEXT, WorkerContext
 
 __all__ = ["LocalTransport"]
 
@@ -35,9 +36,14 @@ class LocalTransport:
     ) -> None:
         await self.teardown_transport()
 
-    async def request_work(self, worker_id: str) -> WorkResponse:
+    async def request_work(
+        self,
+        worker_id: str,
+        *,
+        worker_context: WorkerContext = DEFAULT_WORKER_CONTEXT,
+    ) -> WorkResponse:
         """Delegate to :meth:`pulq.core.pull_queue.PullQueue.get_next`."""
-        return await self._queue.get_next(worker_id)
+        return await self._queue.get_next(worker_id, worker_context=worker_context)
 
     async def report_completion(self, task_id: str, result: dict[str, Any]) -> None:
         """Delegate to :meth:`pulq.core.pull_queue.PullQueue.mark_complete`."""

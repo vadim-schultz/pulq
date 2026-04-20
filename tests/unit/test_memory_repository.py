@@ -4,7 +4,14 @@ from __future__ import annotations
 
 import pytest
 
-from pulq import InMemoryTaskRepository, NoPendingTask, Task, TaskStatus
+from pulq import (
+    InMemoryTaskRepository,
+    NoPendingTask,
+    Task,
+    TaskExecutionSetup,
+    TaskStatus,
+    WorkerContext,
+)
 
 
 @pytest.mark.asyncio
@@ -25,6 +32,51 @@ async def test_claim_empty_returns_no_pending() -> None:
     out = await r.claim_next_pending("high", "w")
     assert isinstance(out, NoPendingTask)
     assert out.priority == "high"
+
+
+@pytest.mark.asyncio
+async def test_claim_rotates_past_non_matching_execution_target() -> None:
+    r = InMemoryTaskRepository()
+    await r.schedule(
+        Task(
+            priority="high",
+            handler_name="x",
+            payload={"n": 1},
+            execution_target=TaskExecutionSetup(setup_name="s2"),
+        ),
+    )
+    await r.schedule(
+        Task(
+            priority="high",
+            handler_name="x",
+            payload={"n": 2},
+            execution_target=TaskExecutionSetup(setup_name="s1"),
+        ),
+    )
+    ctx = WorkerContext(setup_name="s1")
+    claimed = await r.claim_next_pending("high", "w", worker_context=ctx)
+    assert isinstance(claimed, Task)
+    assert claimed.payload["n"] == 2
+
+
+@pytest.mark.asyncio
+async def test_claim_reports_capability_mismatch_when_none_match() -> None:
+    r = InMemoryTaskRepository()
+    await r.schedule(
+        Task(
+            priority="high",
+            handler_name="x",
+            payload={},
+            execution_target=TaskExecutionSetup(setup_name="other"),
+        ),
+    )
+    out = await r.claim_next_pending(
+        "high",
+        "w",
+        worker_context=WorkerContext(setup_name="here"),
+    )
+    assert isinstance(out, NoPendingTask)
+    assert out.had_capability_mismatch is True
 
 
 @pytest.mark.asyncio

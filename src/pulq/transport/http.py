@@ -11,6 +11,7 @@ from typing import Any, Self
 import httpx
 
 from pulq.errors import TransportHttpError
+from pulq.models.capabilities import DEFAULT_WORKER_CONTEXT, WorkerContext
 from pulq.models.enums import CommandType
 from pulq.models.http import ReportCompletionRequest, RequestWorkRequest, SendCommandRequest
 from pulq.models.task import Task
@@ -120,9 +121,17 @@ class HttpTransport:
     ) -> None:
         await self.teardown_transport()
 
-    async def request_work(self, worker_id: str) -> Task | ManagementCommand | NoWork:
+    async def request_work(
+        self,
+        worker_id: str,
+        *,
+        worker_context: WorkerContext = DEFAULT_WORKER_CONTEXT,
+    ) -> Task | ManagementCommand | NoWork:
         """POST ``request_work_path`` with ``worker_id``; response body is a work union."""
-        payload = RequestWorkRequest(worker_id=worker_id).model_dump(mode="json")
+        payload = RequestWorkRequest(
+            worker_id=worker_id,
+            worker_context=worker_context,
+        ).model_dump(mode="json")
         try:
             response = await self._http.post(self.request_work_path, json=payload)
         except httpx.RequestError as exc:

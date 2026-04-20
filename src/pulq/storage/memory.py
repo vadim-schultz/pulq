@@ -7,9 +7,53 @@ from collections import defaultdict, deque
 from typing import Any
 
 from pulq.errors import TaskNotFoundError
-from pulq.models import NoPendingTask, Task, TaskStatus
+from pulq.models import NoPendingTask, PendingClaimed, PendingDequeExhausted, Task, TaskStatus
+from pulq.models.capabilities import DEFAULT_WORKER_CONTEXT, WorkerContext
+
+# This module is a reference `TaskRepository` for tests and local use, not a production
+# backend. It keeps process-local state only (no durability, no multi-process safety), and
+# claims walk a FIFO deque per priority—workers may scan past tasks they cannot run, which
+# does not scale like indexed or partitioned stores. For production, use (or implement) a
+# repository backed by Redis, SQLite, PostgreSQL, MongoDB, or similar.
 
 __all__ = ["InMemoryTaskRepository"]
+
+
+def _running_claim_copy(task: Task, worker_id: str) -> Task:
+    """Return a deep copy of ``task`` marked RUNNING and assigned to ``worker_id``."""
+    return task.model_copy(
+        update={
+            "status": TaskStatus.RUNNING,
+            "assigned_worker_id": worker_id,
+        },
+        deep=True,
+    )
+
+
+def _scan_pending_deque_for_claim(
+    q: deque[str],
+    tasks: dict[str, Task],
+    worker_context: WorkerContext,
+    worker_id: str,
+) -> PendingClaimed | PendingDequeExhausted:
+    """Pop ids from ``q`` until a PENDING task assignable to ``worker_context`` is claimed."""
+    initial_len = len(q)
+    had_capability_mismatch = False
+    for _ in range(initial_len):
+        if not q:
+            break
+        task_id = q.popleft()
+        stored = tasks[task_id]
+        if stored.status != TaskStatus.PENDING:
+            continue
+        if not stored.assignable_by(worker_context):
+            q.append(task_id)
+            had_capability_mismatch = True
+            continue
+        claimed = _running_claim_copy(stored, worker_id)
+        tasks[task_id] = claimed
+        return PendingClaimed(task=claimed)
+    return PendingDequeExhausted(had_capability_mismatch=had_capability_mismatch)
 
 
 class InMemoryTaskRepository:
@@ -30,25 +74,34 @@ class InMemoryTaskRepository:
             self._pending_ids[task.priority].append(task.id)
         return task.id
 
-    async def claim_next_pending(self, priority: str, worker_id: str) -> Task | NoPendingTask:
-        """Pop oldest pending task for ``priority`` and mark it RUNNING."""
+    async def claim_next_pending(
+        self,
+        priority: str,
+        worker_id: str,
+        *,
+        worker_context: WorkerContext = DEFAULT_WORKER_CONTEXT,
+    ) -> Task | NoPendingTask:
+        """Pop the next pending task for ``priority`` that matches ``worker_context``.
+
+        Under :attr:`_lock`, deque mutation and ``_tasks`` updates are atomic for this process.
+
+        Pending ids in the deque always have a row in ``_tasks`` (see :meth:`schedule`); a
+        :class:`~pulq.models.NoPendingTask` is returned when the queue is starved or no task
+        matches ``worker_context``.
+        """
         async with self._lock:
-            q = self._pending_ids[priority]
-            while q:
-                task_id = q.popleft()
-                existing = self._tasks.get(task_id)
-                if existing is None or existing.status != TaskStatus.PENDING:
-                    continue
-                claimed = existing.model_copy(
-                    update={
-                        "status": TaskStatus.RUNNING,
-                        "assigned_worker_id": worker_id,
-                    },
-                    deep=True,
-                )
-                self._tasks[task_id] = claimed
-                return claimed
-        return NoPendingTask(priority=priority)
+            outcome = _scan_pending_deque_for_claim(
+                self._pending_ids[priority],
+                self._tasks,
+                worker_context,
+                worker_id,
+            )
+        if isinstance(outcome, PendingClaimed):
+            return outcome.task
+        return NoPendingTask(
+            priority=priority,
+            had_capability_mismatch=outcome.had_capability_mismatch,
+        )
 
     async def mark_complete(self, task_id: str, result: dict[str, Any]) -> Task:
         """Set task to COMPLETED unless ``result`` contains ``\"ok\": False``."""

@@ -6,6 +6,7 @@ from types import TracebackType
 from typing import Any, Protocol, Self
 
 from pulq.models import ClaimResult, Task, WorkResponse
+from pulq.models.capabilities import WorkerContext
 
 __all__ = [
     "ClaimResult",
@@ -14,13 +15,20 @@ __all__ = [
     "TaskRepository",
     "Transport",
     "WorkResponse",
+    "WorkerContext",
 ]
 
 
 class TaskRepository(Protocol):
     """Storage backend for pending tasks (implement with DB, Redis, etc.)."""
 
-    async def claim_next_pending(self, priority: str, worker_id: str) -> ClaimResult:
+    async def claim_next_pending(
+        self,
+        priority: str,
+        worker_id: str,
+        *,
+        worker_context: WorkerContext,
+    ) -> ClaimResult:
         """Atomically claim the next pending task for ``priority``, if any."""
 
     async def mark_complete(self, task_id: str, result: dict[str, Any]) -> Task:
@@ -56,7 +64,12 @@ class Transport(Protocol):
     ) -> None:
         """Exit context: typically ``await teardown_transport()``."""
 
-    async def request_work(self, worker_id: str) -> WorkResponse:
+    async def request_work(
+        self,
+        worker_id: str,
+        *,
+        worker_context: WorkerContext,
+    ) -> WorkResponse:
         """Pull the next schedulable item for ``worker_id``."""
 
     async def report_completion(self, task_id: str, result: dict[str, Any]) -> None:

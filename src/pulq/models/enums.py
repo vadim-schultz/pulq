@@ -29,3 +29,4 @@ class NoWorkReason(StrEnum):
 
     QUEUE_EMPTY = "queue_empty"
     ALL_PRIORITIES_STARVED = "all_priorities_starved"
+    NO_CAPABLE_TASKS = "no_capable_tasks"

@@ -21,6 +21,7 @@ from pulq import (
     Task,
     Worker,
     WorkerConfig,
+    WorkerContext,
 )
 
 
@@ -78,7 +79,12 @@ async def test_worker_calls_transport_setup_and_teardown() -> None:
         ) -> None:
             await self.teardown_transport()
 
-        async def request_work(self, worker_id: str) -> ManagementCommand:
+        async def request_work(
+            self,
+            worker_id: str,
+            *,
+            worker_context: WorkerContext,  # noqa: ARG002
+        ) -> ManagementCommand:
             return ManagementCommand(command=CommandType.STOP, worker_id=worker_id)
 
         async def report_completion(self, task_id: str, result: dict[str, bool]) -> None:

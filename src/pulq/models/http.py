@@ -6,6 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, RootModel
 
+from pulq.models.capabilities import WorkerContext
 from pulq.models.enums import CommandType
 from pulq.models.task import Task
 from pulq.models.work import ManagementCommand, NoWork
@@ -24,6 +25,7 @@ class RequestWorkRequest(BaseModel):
     """Body for ``POST .../request_work``."""
 
     worker_id: str = Field(min_length=1)
+    worker_context: WorkerContext = Field(default_factory=WorkerContext)
 
 
 class WorkResponseBody(RootModel[Task | ManagementCommand | NoWork]):

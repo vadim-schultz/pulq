@@ -15,6 +15,7 @@ from pulq.models import (
     Task,
     WorkResponse,
 )
+from pulq.models.capabilities import DEFAULT_WORKER_CONTEXT, WorkerContext
 from pulq.types import TaskRepository
 
 __all__ = ["PullQueue"]
@@ -62,7 +63,12 @@ class PullQueue:
         """Mark ``task_id`` complete; ``result`` follows handler conventions."""
         await self._repository.mark_complete(task_id, result)
 
-    async def get_next(self, worker_id: str) -> WorkResponse:
+    async def get_next(
+        self,
+        worker_id: str,
+        *,
+        worker_context: WorkerContext = DEFAULT_WORKER_CONTEXT,
+    ) -> WorkResponse:
         """Pull the next management command, schedulable task, or :class:`~pulq.models.NoWork`."""
         if self._on_heartbeat is not None:
             await self._on_heartbeat(worker_id)
@@ -70,10 +76,16 @@ class PullQueue:
         if self._commands.has_pending_for(worker_id):
             return self._commands.take_next_for(worker_id)
 
-        return await self._schedule_next_task(worker_id)
+        return await self._schedule_next_task(worker_id, worker_context=worker_context)
 
-    async def _schedule_next_task(self, worker_id: str) -> Task | NoWork:
+    async def _schedule_next_task(
+        self,
+        worker_id: str,
+        *,
+        worker_context: WorkerContext = DEFAULT_WORKER_CONTEXT,
+    ) -> Task | NoWork:
         """Run the WDRR loop until a task is claimed or scheduling is exhausted."""
+        saw_capability_mismatch = False
         while True:
             was_epoch_start = self._deficits.is_epoch_complete
             if was_epoch_start:
@@ -81,13 +93,21 @@ class PullQueue:
 
             made_progress = False
             for priority in self._deficits.claimable_priorities:
-                claimed = await self._repository.claim_next_pending(priority, worker_id)
+                claimed = await self._repository.claim_next_pending(
+                    priority,
+                    worker_id,
+                    worker_context=worker_context,
+                )
                 if isinstance(claimed, Task):
                     self._deficits.debit(priority)
                     return claimed
                 if isinstance(claimed, NoPendingTask):
+                    if claimed.had_capability_mismatch:
+                        saw_capability_mismatch = True
                     self._deficits.zero_out(priority)
                     made_progress = True
 
             if was_epoch_start or not made_progress:
+                if saw_capability_mismatch:
+                    return NoWork(reason=NoWorkReason.NO_CAPABLE_TASKS)
                 return NoWork(reason=NoWorkReason.ALL_PRIORITIES_STARVED)
