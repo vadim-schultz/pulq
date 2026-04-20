@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
-from pulq.models.task import Task  # noqa: TC001
+from pulq.models.task import Task
 
 __all__ = [
     "PendingClaimed",

@@ -74,4 +74,5 @@
 .. automodule:: pulq.types
    :members:
    :undoc-members:
+   :exclude-members: WorkerContext
 ```
